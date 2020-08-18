@@ -14,8 +14,9 @@ import {
 } from './utils';
 import { ObjectId, Document, BSONSerializeOptions } from './bson';
 import { MongoError } from './error';
-import { initializeUnorderedBulkOp as unordered } from './bulk/unordered';
-import { initializeOrderedBulkOp as ordered } from './bulk/ordered';
+import { UnorderedBulkOperation } from './bulk/unordered';
+import { OrderedBulkOperation } from './bulk/ordered';
+import type { Operations, BulkOptions } from './bulk/common';
 import { ChangeStream, ChangeStreamOptions } from './change_stream';
 import { WriteConcern, WriteConcernOptions } from './write_concern';
 import { ReadConcern } from './read_concern';
@@ -381,16 +382,16 @@ export class Collection implements OperationParent {
    * @param options - Optional settings for the command
    * @param callback - An optional callback, a Promise will be returned if none is provided
    */
-  bulkWrite(operations: Document[]): Promise<BulkWriteResult>;
-  bulkWrite(operations: Document[], callback: Callback<BulkWriteResult>): void;
-  bulkWrite(operations: Document[], options: InsertOptions): Promise<BulkWriteResult>;
+  bulkWrite(operations: Operations): Promise<BulkWriteResult>;
+  bulkWrite(operations: Operations, callback: Callback<BulkWriteResult>): void;
+  bulkWrite(operations: Operations, options: InsertOptions): Promise<BulkWriteResult>;
   bulkWrite(
-    operations: Document[],
+    operations: Operations,
     options: InsertOptions,
     callback: Callback<BulkWriteResult>
   ): void;
   bulkWrite(
-    operations: Document[],
+    operations: Operations,
     options?: InsertOptions | Callback<BulkWriteResult>,
     callback?: Callback<BulkWriteResult>
   ): Promise<BulkWriteResult> | void {
@@ -1487,14 +1488,16 @@ export class Collection implements OperationParent {
    * @param {ClientSession} [options.session] optional session to use for this operation
    * @returns {UnorderedBulkOperation}
    */
-  initializeUnorderedBulkOp(options?: any): any {
+  initializeUnorderedBulkOp(
+    options?: Omit<BulkOptions, 'addToOperationsList'>
+  ): UnorderedBulkOperation {
     options = options || {};
     // Give function's options precedence over session options.
     if (options.ignoreUndefined == null) {
       options.ignoreUndefined = this.s.options.ignoreUndefined;
     }
 
-    return unordered(this.s.topology, this, options);
+    return new UnorderedBulkOperation(this.s.topology, this, options);
   }
 
   /**
@@ -1509,14 +1512,16 @@ export class Collection implements OperationParent {
    * @param {boolean} [options.ignoreUndefined=false] Specify if the BSON serializer should ignore undefined fields.
    * @returns {OrderedBulkOperation}
    */
-  initializeOrderedBulkOp(options?: any): any {
+  initializeOrderedBulkOp(
+    options?: Omit<BulkOptions, 'addToOperationsList'>
+  ): OrderedBulkOperation {
     options = options || {};
     // Give function's options precedence over session's options.
     if (options.ignoreUndefined == null) {
       options.ignoreUndefined = this.s.options.ignoreUndefined;
     }
 
-    return ordered(this.s.topology, this, options);
+    return new OrderedBulkOperation(this.s.topology, this, options);
   }
 
   /**
