@@ -10,14 +10,7 @@ import * as BSON from '../bson';
 import type { Collection } from '../collection';
 import type { Topology } from '../sdam/topology';
 
-/**
- * Add to internal list of Operations
- *
- * @param {OrderedBulkOperation} bulkOperation
- * @param {number} batchType number indicating the document type
- * @param {any} document
- * @returns {OrderedBulkOperation}
- */
+/** Add to internal list of Operations */
 export function addToOperationsList(
   bulkOperation: OrderedBulkOperation,
   batchType: BatchTypes,
@@ -90,12 +83,9 @@ export function addToOperationsList(
 }
 
 /**
- * Create a new OrderedBulkOperation instance (INTERNAL TYPE, do not instantiate directly)
+ * Create a new OrderedBulkOperation instance
  *
- * @class
- * @extends BulkOperationBase
- * @property {number} length Get the number of operations in the bulk.
- * @returns {OrderedBulkOperation} a OrderedBulkOperation instance.
+ * @internal
  */
 export class OrderedBulkOperation extends BulkOperationBase {
   constructor(
